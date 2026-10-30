@@ -72,6 +72,26 @@ namespace
         require(store.contains(crate_handle), "The handle created after storage growth must resolve.");
     }
 
+    void clearing_the_store_invalidates_previous_round_handles(){
+        kotte::EntityStore store;
+        kotte::Entity player{};
+        player.kind = kotte::EntityKind::player;
+        const kotte::EntityHandle previous_round = store.create(player);
+        store.clear();
+        require(store.live_count() == 0, "Clear must remove all live entities.");
+
+        const kotte::EntityHandle new_round = store.create(player);
+        require(previous_round.slot == new_round.slot,
+            "This test should exercise reuse of the previous player's slot.");
+        require(previous_round.generation != new_round.generation,
+            "Clear must change the generation of reused slots.");
+        require(!store.contains(previous_round),
+            "An old-round handle must not resolve to its replacement.");
+        require(store.contains(new_round), "A new-round handle must resolve.");
+        store.clear();
+        require(!store.contains(new_round), "A second clear must invalidate new-round handles too.");
+    }
+
     void relationships_do_not_keep_stale_owners_alive(){
         kotte::EntityStore store;
 
@@ -104,6 +124,7 @@ int main(){
     try{
         stale_handle_cannot_access_a_reused_slot();
         handles_survive_storage_reallocation();
+        clearing_the_store_invalidates_previous_round_handles();
         relationships_do_not_keep_stale_owners_alive();
         std::println("EntityStore tests passed.");
         return 0;

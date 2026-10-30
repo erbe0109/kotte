@@ -12,7 +12,8 @@ namespace kotte
         player,
         bomb,
         crate,
-        enemy
+        enemy,
+        range_pickup
     };
 
     enum class CardinalDirection : std::uint8_t {
@@ -27,6 +28,7 @@ namespace kotte
         float fuse_remaining = 0.0f;
         std::uint8_t blast_range = 0;
         bool detonation_requested = false;
+        bool owner_escape_allowed = true;
     };
 
     struct Entity final {
